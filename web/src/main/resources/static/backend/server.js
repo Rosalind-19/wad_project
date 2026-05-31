@@ -49,19 +49,25 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files (HTML, CSS, JS)
-app.use(express.static(path.join(__dirname, "../../../")));
-
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, "../frontend")));
  
 // routes - Authentication (không cần token)
  
 
 // Health check
+// app.get("/", (req, res) => {
+//   res.json({ 
+//     message: "Backend is running OK!",
+//     timestamp: new Date().toISOString()
+//   });
+// });
+
+// Default route - serve login page for railway
 app.get("/", (req, res) => {
-  res.json({ 
-    message: "Backend is running OK!",
-    timestamp: new Date().toISOString()
-  });
+  res.sendFile(path.join(__dirname, "../frontend/login.html"));
 });
+
 
 // login route
 app.post("/login", validateLogin, (req, res, next) => {
