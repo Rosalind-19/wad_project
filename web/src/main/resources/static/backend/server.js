@@ -50,7 +50,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files (HTML, CSS, JS)
 // Serve frontend static files
-app.use(express.static(path.join(__dirname, "../frontend")));
+app.use(express.static(path.join(__dirname, "../frontend"), { index: false }));
  
 // routes - Authentication (không cần token)
  
