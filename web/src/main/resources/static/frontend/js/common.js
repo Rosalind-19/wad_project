@@ -1,6 +1,8 @@
 // common.js — shared state & helpers
 
-const API = "http://localhost:3000";
+// common.js — shared state & helpers
+
+const API = window.location.origin;
 
 // Global state
 let currentRole   = null;
