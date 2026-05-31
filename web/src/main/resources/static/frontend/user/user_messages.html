@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Messages — Forum HCMIU</title>
+  <link rel="stylesheet" href="../user/css/user_messages.css"/>
+  <link rel="stylesheet" href="../user/css/user.css"/>
+  <link rel="stylesheet" href="../user/css/report_modal.css"/>
+  <link rel="stylesheet" href="../css/theme.css">
+</head>
+<body>
+
+<div id="forumScreen" class="forum-layout">
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="logo-icon small">◈</span>
+      <span class="topbar-title">Forum HCMIU</span>
+    </div>
+    <div class="topbar-right">
+      <div class="user-chip">
+        <div class="chip-avatar user" id="chipAvatar"></div>
+        <span id="chipName"></span>
+        <span class="role-tag user" id="chipRole">User</span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="forum-body">
+    <aside class="sidebar">
+      <nav class="sidebar-nav" id="sidebarNav">
+        <div class="sidebar-label">User Menu</div>
+        <div class="nav-item" data-tab="threads" onclick="window.location.href='user_threads.html'">
+          <span class="nav-icon">◫</span>Threads
+        </div>
+        <div class="nav-item active" data-tab="messages" onclick="window.location.href='user_messages.html'">
+          <span class="nav-icon">✉</span>Messages
+        </div>
+        <div class="nav-item" data-tab="notifications" onclick="window.location.href='user_notifications.html'">
+          <span class="nav-icon">◎</span>Notifications
+        </div>
+        <div class="nav-item" data-tab="subscribes" onclick="window.location.href='user_subscribes.html'">
+          <span class="nav-icon">★</span>Subscriptions
+        </div>
+        <div class="nav-item" data-tab="profile" onclick="window.location.href='user_profile.html'">
+          <span class="nav-icon">👤</span>Profile
+        </div>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="mainContent">
+      <div id="page-messages" class="page-section">
+        <div class="page-title">Posts</div>
+        <div class="page-desc">All posts in the forum</div>
+        <div class="perm-banner user">ℹ️ You are <strong>User</strong> — read posts, create posts, subscribe to threads.</div>
+
+        <div id="messagesList"></div>
+
+        <div class="card compose-card-wrapper">
+          <div class="card-title">Create New Post</div>
+          <select id="threadSelect"></select>
+          <div class="compose-box">
+            <input class="compose-input" id="msgInput" placeholder="Enter content...">
+            <button class="btn success" onclick="postMessage()">Post</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- =============================================
+     Modal Report
+     ============================================= -->
+<div class="report-modal-overlay" id="reportModalOverlay">
+  <div class="report-modal">
+    <div class="report-modal-header">
+      <span class="report-modal-title">🚩 Report Post</span>
+      <button class="report-modal-close" onclick="closeReportModal()">✕</button>
+    </div>
+
+    <!-- Preview nội dung bài bị report -->
+    <div class="report-post-preview" id="reportPostPreview"></div>
+
+    <!-- Danh sách lý do sẵn có -->
+    <label class="report-modal-label">Select a reason:</label>
+    <div class="report-reasons-grid">
+      <label class="reason-option">
+        <input type="radio" name="reportReason" value="Spam"> Spam
+      </label>
+      <label class="reason-option">
+        <input type="radio" name="reportReason" value="Hate speech"> Hate speech
+      </label>
+      <label class="reason-option">
+        <input type="radio" name="reportReason" value="Harassment"> Harassment
+      </label>
+      <label class="reason-option">
+        <input type="radio" name="reportReason" value="Misinformation"> Misinformation
+      </label>
+      <label class="reason-option">
+        <input type="radio" name="reportReason" value="Inappropriate content"> Inappropriate
+      </label>
+      <label class="reason-option">
+        <input type="radio" name="reportReason" value="Other"> Other
+      </label>
+    </div>
+
+    <!-- Ô nhập lý do khi chọn Other -->
+    <textarea
+      class="report-other-input"
+      id="reportOtherInput"
+      placeholder="Please describe the issue..."
+    ></textarea>
+
+    <div class="report-modal-footer">
+      <button class="btn" onclick="closeReportModal()">Cancel</button>
+      <button class="btn danger" onclick="submitReport()">Submit Report</button>
+    </div>
+  </div>
+</div>
+
+<!-- Template: post card -->
+<template id="tpl-post-card">
+  <div class="post-card">
+    <div class="post-header">
+      <div class="post-avatar"></div>
+      <div class="post-info">
+        <div class="post-author"></div>
+        <div class="post-meta">
+          <span class="meta-date"></span>
+          <span class="meta-dot-divider">•</span>
+          <span class="thread-badge"></span>
+        </div>
+      </div>
+      <!-- Bài của mình: Edit + Delete -->
+      <div class="post-owner-actions" style="display:none;">
+        <button class="btn-icon btn-edit" title="Edit">✏️ Edit</button>
+        <button class="btn-icon danger btn-delete" title="Delete">🗑️ Delete</button>
+      </div>
+      <!-- Bài của người khác: Report -->
+      <div class="post-report-action" style="display:none;">
+        <button class="btn-icon btn-report" title="Report this post">🚩 Report</button>
+      </div>
+    </div>
+    <div class="post-content"></div>
+    <div class="post-stats">
+      <span class="reaction-summary"></span>
+      <span class="comment-count-label"></span>
+    </div>
+    <div class="post-actions-bar">
+      <div class="emoji-row"></div>
+      <button class="btn-action-comment">💬 Comment</button>
+    </div>
+    <div class="comments-section" style="display:none;">
+      <div class="comments-list"></div>
+      <div class="comment-compose">
+        <div class="comment-avatar-sm current-user-avatar"></div>
+        <div class="comment-input-wrap">
+          <input class="comment-input" placeholder="Write a comment...">
+          <button class="btn-send">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- Template: comment item -->
+<template id="tpl-comment-item">
+  <div class="comment-thread-item">
+    <div class="comment-row">
+      <div class="comment-avatar-sm author-avatar"></div>
+      <div class="comment-bubble-wrap">
+        <div class="comment-bubble">
+          <span class="comment-author"></span>
+          <span class="comment-text"></span>
+        </div>
+        <div class="comment-meta-row">
+          <span class="comment-time"></span>
+          <button class="btn-reply-link btn-reply-toggle" style="display:none;">Reply</button>
+          <button class="btn-reply-link btn-edit-comment" style="display:none;">Edit</button>
+          <button class="btn-reply-link danger btn-delete-comment" style="display:none;">Delete</button>
+        </div>
+        <div class="reply-box" style="display:none;">
+          <div class="comment-avatar-sm small current-user-avatar"></div>
+          <div class="comment-input-wrap">
+            <input class="comment-input small" placeholder="Reply...">
+            <button class="btn-send small">➤</button>
+          </div>
+        </div>
+        <div class="nested-comments-container"></div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- Template: reaction button -->
+<template id="tpl-reaction-btn">
+  <button class="reaction-btn">
+    <span class="emoji-icon"></span> <span class="reaction-count"></span>
+  </button>
+</template>
+
+<div class="toast" id="toast"></div>
+
+<script src="../js/common.js"></script>
+<script src="../js/page_router.js"></script>
+<script>window.__ACTIVE_TAB__ = 'messages';</script>
+<script src="../user/js/user_messages.js"></script>
+</body>
+</html>
